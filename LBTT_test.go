@@ -66,13 +66,4 @@ func TestLastThreashold(t *testing.T) {
 	}
 }
 
-/*func TestOutsideThreshold(t *testing.T) {
-	price := 800000
 
-	result := CalculateTaxRate(price)
-	expectedRate := 60000.0
-
-	if result != expectedRate {
-		t.Error("Unexpected tax")
-	}
-}*/
