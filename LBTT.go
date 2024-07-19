@@ -1,22 +1,52 @@
 package main
 
-var threasholds = []int{145000, 250000, 325000, 750000}
-var rates = []float64{0, 0.02, 0.05, 0.10, 0.12}
+type taxBand struct {
+	lower int
+	upper int
+	rate  float64
+}
+
+var bands []taxBand = []taxBand{
+	{lower: 0, upper: 145000, rate: 0.0},
+	{lower: 145000, upper: 250000, rate: 0.02},
+	{lower: 250000, upper: 325000, rate: 0.05},
+	{lower: 325000, upper: 750000, rate: 0.10},
+	{lower: 750000, upper: 9999999, rate: 0.12},
+}
+
+func (band taxBand) Includes(price int) bool {
+	return price >= band.lower && price <= band.upper
+}
+
+func (band taxBand) isAbove(price int) bool {
+	return price > band.upper
+}
+
+func (band taxBand) taxWithinBand(price int) float64 {
+	return float64(price-band.lower) * band.rate
+}
+
+func (band taxBand) maxTaxForBand(price int) float64 {
+	return float64(band.upper-band.lower) * band.rate
+}
+
+func (band taxBand) taxDue(price int) float64 {
+	if band.Includes(price) {
+		return band.taxWithinBand(price)
+	}
+
+	if band.isAbove(price) {
+		return band.maxTaxForBand(price)
+	}
+	return 0
+}
 
 func CalculateTaxRate(priceOfHouse int) float64 {
-	var tax float64
+	tax := 0.0
 
-	switch {
-	case priceOfHouse <= threasholds[0]:
-		tax = 0
-	case priceOfHouse <= threasholds[1]:
-		tax = float64(priceOfHouse-threasholds[0]) * rates[1]
-	case priceOfHouse <= threasholds[2]:
-		tax = float64(threasholds[1]-threasholds[0])*rates[1] + float64(priceOfHouse-threasholds[1])*rates[2]
-	case priceOfHouse <= threasholds[3]:
-		tax = float64(threasholds[1]-threasholds[0])*rates[1] + float64(threasholds[2]-threasholds[1])*rates[2] + float64(priceOfHouse-threasholds[2])*rates[3]
-	default:
-		tax = float64(threasholds[1]-threasholds[0])*rates[1] + float64(threasholds[2]-threasholds[1])*rates[2] + float64(threasholds[3]-threasholds[2])*rates[3] + float64(priceOfHouse-threasholds[3])*rates[4]
+	for _, band := range bands {
+		tax += band.taxDue(priceOfHouse)
 	}
 	return tax
+
 }
